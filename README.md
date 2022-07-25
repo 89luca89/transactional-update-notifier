@@ -5,7 +5,8 @@ order to notify all graphically logged in users about updates performed.
 
 # Build
 
-`go build`
+`make
+sudo make install
 
 # Usage
 
@@ -14,6 +15,10 @@ order to notify all graphically logged in users about updates performed.
 this should run as an user's systemd unit. 
 
 `transactional-update-notifier daemon`
+
+Or using systemd (after installing using makefile)
+
+`sudo systemctl enable --now transactional-update-notifier@"${USER}".service`
 
 ## Client
 
