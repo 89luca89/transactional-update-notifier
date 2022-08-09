@@ -13,7 +13,7 @@ import (
 // NotifyDaemonClient will search througt all files in /run/user, to find all
 // running transactionalupdatenotification socket files, then send a message
 // to each one of them in order to trigger the notification for all.
-func NotifyDaemonClient() {
+func NotifyDaemonClient(success string) {
 	transactionalUpdateSockets := []string{}
 
 	err := filepath.Walk("/run/user", func(path string, info os.FileInfo, err error) error {
@@ -37,7 +37,7 @@ func NotifyDaemonClient() {
 		}
 		defer connection.Close()
 
-		_, err = connection.Write([]byte(Message))
+		_, err = connection.Write([]byte(Message + ":" + success))
 		if err != nil {
 			log.Println("write error:", err)
 		}

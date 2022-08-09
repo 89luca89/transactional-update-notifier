@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/godbus/dbus/v5"
 )
@@ -16,7 +17,20 @@ var sockAddr = "/run/user/" +
 	strconv.Itoa(os.Geteuid()) +
 	"/transactionalupdatenotification.socket"
 
-func notifySend() {
+func notifySend(input string) {
+	success := strings.Split(input, ":")[1]
+
+	// Customize message based on success state
+	message := "Updates successfully installed"
+	submessage := "System has been upgraded, on " +
+		string(time.Now().Format(time.RFC1123)) +
+		" please reboot to take effect."
+	if strings.Compare(success, "failure") == 0 {
+		message = "Update process failed"
+		submessage = "An error was encountered while upgrading on " +
+			string(time.Now().Format(time.RFC1123))
+	}
+
 	conn, err := dbus.ConnectSessionBus()
 	if err != nil {
 		panic(err)
@@ -33,8 +47,8 @@ func notifySend() {
 		"",
 		uint32(0),
 		"dialog-warning",
-		"Updates Installed.",
-		"System has been upgraded, please reboot to take effect.",
+		message,
+		submessage,
 		[]string{},
 		map[string]dbus.Variant{},
 		int32(5000),
@@ -55,8 +69,8 @@ func handleMessage(connection net.Conn) {
 		panic("Receiving error")
 	}
 
-	if strings.Compare(string(inputBuffer[:data]), Message) == 0 {
-		notifySend()
+	if strings.Contains(string(inputBuffer[:data]), Message) {
+		notifySend(string(inputBuffer[:data]))
 	}
 
 	_, err = io.Copy(connection, connection)

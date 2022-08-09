@@ -33,8 +33,11 @@ func main() {
 	}
 
 	if os.Args[1] == "client" {
-		NotifyDaemonClient()
-
+		if len(os.Args) > 2 && os.Args[2] == "failure" {
+			NotifyDaemonClient("failure")
+			return
+		}
+		NotifyDaemonClient("success")
 		return
 	}
 }
