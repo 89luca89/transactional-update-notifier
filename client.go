@@ -20,9 +20,6 @@ func NotifyDaemonClient(success string) {
 		if strings.Contains(path, "transactionalupdatenotification.socket") {
 			transactionalUpdateSockets = append(transactionalUpdateSockets, path)
 		}
-		if err != nil {
-			log.Println("ERROR:", err)
-		}
 
 		return nil
 	})

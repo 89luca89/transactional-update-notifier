@@ -25,10 +25,12 @@ func notifySend(input string) {
 	submessage := "System has been upgraded, on " +
 		string(time.Now().Format(time.RFC1123)) +
 		" please reboot to take effect."
+	icon := "appointment-soon"
 	if strings.Compare(success, "failure") == 0 {
 		message = "Update process failed"
 		submessage = "An error was encountered while upgrading on " +
 			string(time.Now().Format(time.RFC1123))
+		icon = "appointment-missed"
 	}
 
 	conn, err := dbus.ConnectSessionBus()
@@ -46,7 +48,7 @@ func notifySend(input string) {
 		0,
 		"",
 		uint32(0),
-		"dialog-warning",
+		icon,
 		message,
 		submessage,
 		[]string{},
