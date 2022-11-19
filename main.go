@@ -14,7 +14,7 @@ var Message = "org.transactionalUpdate.Notify"
 
 func main() {
 	if len(os.Args) < 2 || os.Args[1] == "-h" || os.Args[1] == "--help" {
-		fmt.Fprintf(os.Stderr, "usage: %s transactional-update-notifier [daemon|client]", os.Args[0])
+		fmt.Fprintf(os.Stderr, "usage: %s transactional-update-notifier [daemon|client]\n", os.Args[0])
 
 		return
 	}

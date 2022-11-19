@@ -8,4 +8,5 @@ all:
 
 install:
 	cp build/transactional-update-notifier /usr/bin/
-	cp transactional-update-notifier@.service /etc/systemd/system
+	cp transactional-update-notifier.service /usr/lib/systemd/user
+	cp transactional-update-notifier.preset /usr/lib/systemd/user-preset
