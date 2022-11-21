@@ -3,28 +3,45 @@
 This tool can be used in conjunction with `transactional-update`'s notify method in
 order to notify all graphically logged in users about updates performed.
 
-# Build
+## Build and installation
 
-`make
+All you're going to need is [Go](https://go.dev/) `>= 1.18` and
+[GNU Make](https://www.gnu.org/software/make/)
+
+``` bash
+make
 sudo make install
+```
 
-# Usage
+## Usage
 
-## Daemon
+### Daemon
 
-this should run as an user's systemd unit. 
+**Transactional Update Notifier** should be run as a user's Systemd unit. 
 
-`transactional-update-notifier daemon`
+``` bash
+transactional-update-notifier daemon
+```
 
-Or using systemd (after installing using makefile)
+Or using `systemctl`:
 
-`sudo systemctl enable --now transactional-update-notifier@"${USER}".service`
+``` bash
+systemctl --user enable --now transactional-update-notifier
+```
 
-## Client
+**Note:** After installing **Transactional Update Notifier** using `make`, the
+`96-transactional-update-notifier.preset` preset file should enable the unit
+service by default on next boot and all you needed to do is to start it with:
 
-this can run from anywhere and executed by anyone, this will find all the notifier
-socket and notify them.
+``` bash
+systemctl --user start transactional-update-notifier
+```
 
-`transactional-update-notifier client`
+### Client
 
+**Transactional Update Notifier** can be run from anywhere and executed by anyone,
+it will find the notifier socket and notify the user.
 
+``` bash
+transactional-update-notifier client
+```
