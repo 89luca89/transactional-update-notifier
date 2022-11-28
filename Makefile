@@ -11,7 +11,7 @@ BUILDDIR = build
 WITH_SYSTEMD_PRESET = 1
 
 GO = go
-GOFLAGS ?= 
+GOFLAGS ?=
 LDFLAGS ?= -ldflags "-X main.Version=$(VERSION)"
 CGOFLAGS ?= CGO_ENABLED=0
 
@@ -24,7 +24,7 @@ $(PROGRAM):
 systemd.service:
 	sed -e 's|@bindir@|$(BINDIR)|' $(PROGRAM).service.in > $(BUILDDIR)/$(PROGRAM).service
 
-install: 
+install:
 	install -m 0755 -D $(BUILDDIR)/$(PROGRAM) $(DESTDIR)$(BINDIR)/$(PROGRAM)
 	install -m 0644 -D $(BUILDDIR)/$(PROGRAM).service $(DESTDIR)$(USERUNITDIR)/$(PROGRAM).service
 
