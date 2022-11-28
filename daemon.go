@@ -2,22 +2,17 @@
 package main
 
 import (
-	"io"
 	"log"
-	"net"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/godbus/dbus/v5/introspect"
 )
 
-var sockAddr = "/run/user/" +
-	strconv.Itoa(os.Geteuid()) +
-	"/transactionalupdatenotification.socket"
+type notify string
 
-func notifySend(input string) {
+func (f notify) Notify(input string) (string, *dbus.Error) {
 	success := strings.Split(input, ":")[1]
 
 	// Customize message based on success state
@@ -59,51 +54,58 @@ func notifySend(input string) {
 	if call.Err != nil {
 		panic(call.Err)
 	}
-}
 
-func handleMessage(connection net.Conn) {
-	log.Printf("Client connected [%s]", connection.RemoteAddr().Network())
-
-	inputBuffer := make([]byte, 1024)
-	data, err := connection.Read(inputBuffer)
-
-	if err != nil {
-		panic("Receiving error")
-	}
-
-	if strings.Contains(string(inputBuffer[:data]), Message) {
-		notifySend(string(inputBuffer[:data]))
-	}
-
-	_, err = io.Copy(connection, connection)
-	if err != nil {
-		panic("Receiving error")
-	}
-
-	connection.Close()
+    return string(f), nil
 }
 
 // NotifyDaemon is the user-facing running daemon that will be sending the graphical
 // notifications.
 func NotifyDaemon() {
-	if err := os.RemoveAll(sockAddr); err != nil {
-		log.Fatal(err)
-	}
 
-	listener, err := net.Listen("unix", sockAddr)
+	conn, err := dbus.SystemBus()
+
+	// couldnt connect to session bus
 	if err != nil {
-		log.Fatal("listen error:", err)
+		panic(err)
 	}
-	defer listener.Close()
 
-	for {
-		// Accept new connections, dispatching them to echoServer
-		// in a goroutine.
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println("accept error:", err)
-		}
+	iface := "org.test.tu"
+	path := "/org/test/tu"
 
-		go handleMessage(conn)
+	reply, err := conn.RequestName(iface, dbus.NameFlagDoNotQueue)
+	if err != nil {
+		panic(err)
 	}
+	if reply != dbus.RequestNameReplyPrimaryOwner {
+		panic("Name already taken")
+	}
+
+	m := notify("Bar!")
+
+	conn.Export(m, dbus.ObjectPath(path), iface)
+
+	n := &introspect.Node{
+		Interfaces: []introspect.Interface{
+			{
+				Name:    iface,
+				Methods: introspect.Methods(m),
+				Signals: []introspect.Signal{},
+			},
+		},
+	}
+
+	root := &introspect.Node{
+		Children: []introspect.Node{
+			{
+				Name: "org/test/tu",
+			},
+		},
+	}
+
+	conn.Export(introspect.NewIntrospectable(n), dbus.ObjectPath(path), "org.freedesktop.DBus.Introspectable")
+	conn.Export(introspect.NewIntrospectable(root), "/", "org.freedesktop.DBus.Introspectable") // workaroud for dbus issue #14
+
+	log.Printf("Bridge is Running.")
+
+	select {}
 }

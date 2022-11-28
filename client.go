@@ -1,44 +1,30 @@
 // main package
 package main
 
-import (
-	"log"
-	"net"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
-)
+import "github.com/godbus/dbus/v5"
 
 // NotifyDaemonClient will search througt all files in /run/user, to find all
 // running transactionalupdatenotification socket files, then send a message
 // to each one of them in order to trigger the notification for all.
 func NotifyDaemonClient(success string) {
-	transactionalUpdateSockets := []string{}
-
-	err := filepath.Walk("/run/user", func(path string, info os.FileInfo, err error) error {
-		if strings.Contains(path, "transactionalupdatenotification.socket") {
-			transactionalUpdateSockets = append(transactionalUpdateSockets, path)
-		}
-
-		return nil
-	})
+	// conn, err := dbus.ConnectSessionBus()
+	conn, err := dbus.SystemBus()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
+	defer conn.Close()
 
-	for _, socketFile := range transactionalUpdateSockets {
-		connection, err := net.Dial("unix", socketFile)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer connection.Close()
+	obj := conn.Object(
+		"org.test.tu",
+		"/org/test/tu",
+	)
+	call := obj.Call(
+		"org.test.tu.Notify",
+		0,
+		"notify:" + success,
+	)
 
-		_, err = connection.Write([]byte(Message + ":" + success))
-		if err != nil {
-			log.Println("write error:", err)
-		}
-
-		time.Sleep(100 * time.Millisecond)
+	if call.Err != nil {
+		panic(call.Err)
 	}
 }
