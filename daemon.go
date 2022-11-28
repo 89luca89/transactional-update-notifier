@@ -3,7 +3,6 @@ package main
 
 import (
 	"log"
-	"strings"
 	"time"
 
 	"github.com/godbus/dbus/v5"
@@ -14,16 +13,18 @@ type notify string
 
 func (f notify) Notify(input string) (string, *dbus.Error) {
 
+	log.Printf("Update finished: %s", input)
 	// Customize message based on success state
 	message := "Updates successfully installed"
 	submessage := "System has been upgraded, on " +
-		string(time.Now().Format(time.RFC1123)) +
+		time.Now().Format(time.RFC1123) +
 		" please reboot to take effect."
 	icon := "appointment-soon"
-	if strings.Compare(input, "failure") == 0 {
+
+	if input == "failure" {
 		message = "Update process failed"
 		submessage = "An error was encountered while upgrading on " +
-			string(time.Now().Format(time.RFC1123))
+			time.Now().Format(time.RFC1123)
 		icon = "appointment-missed"
 	}
 
@@ -54,13 +55,12 @@ func (f notify) Notify(input string) (string, *dbus.Error) {
 		panic(call.Err)
 	}
 
-    return string(f), nil
+	return string(f), nil
 }
 
 // NotifyDaemon is the user-facing running daemon that will be sending the graphical
 // notifications.
 func NotifyDaemon() {
-
 	conn, err := dbus.SystemBus()
 
 	// couldnt connect to session bus
@@ -72,13 +72,17 @@ func NotifyDaemon() {
 	if err != nil {
 		panic(err)
 	}
+
 	if reply != dbus.RequestNameReplyPrimaryOwner {
 		panic("Name already taken")
 	}
 
 	m := notify("Ok!")
 
-	conn.Export(m, dbus.ObjectPath(FullPath), Iface)
+	err = conn.Export(m, dbus.ObjectPath(FullPath), Iface)
+	if err != nil {
+		panic(err)
+	}
 
 	n := &introspect.Node{
 		Interfaces: []introspect.Interface{
@@ -98,8 +102,19 @@ func NotifyDaemon() {
 		},
 	}
 
-	conn.Export(introspect.NewIntrospectable(n), dbus.ObjectPath(FullPath), "org.freedesktop.DBus.Introspectable")
-	conn.Export(introspect.NewIntrospectable(root), "/", "org.freedesktop.DBus.Introspectable") // workaroud for dbus issue #14
+	err = conn.Export(introspect.NewIntrospectable(n),
+		dbus.ObjectPath(FullPath),
+		"org.freedesktop.DBus.Introspectable")
+	if err != nil {
+		panic(err)
+	}
+
+	err = conn.Export(introspect.NewIntrospectable(root),
+		"/",
+		"org.freedesktop.DBus.Introspectable")
+	if err != nil {
+		panic(err)
+	}
 
 	log.Printf("Bridge is Running.")
 

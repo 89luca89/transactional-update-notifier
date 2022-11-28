@@ -7,7 +7,6 @@ import "github.com/godbus/dbus/v5"
 // running transactionalupdatenotification socket files, then send a message
 // to each one of them in order to trigger the notification for all.
 func NotifyDaemonClient(success string) {
-	// conn, err := dbus.ConnectSessionBus()
 	conn, err := dbus.SystemBus()
 	if err != nil {
 		panic(err)
@@ -19,7 +18,7 @@ func NotifyDaemonClient(success string) {
 		dbus.ObjectPath(FullPath),
 	)
 	call := obj.Call(
-		Iface + ".Notify",
+		Iface+".Notify",
 		0,
 		success,
 	)

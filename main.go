@@ -8,10 +8,9 @@ import (
 
 // Version is the current value injected at build time.
 var Version string
-
 var Iface = "org.opensuse.tukit.Updated"
-var FullPath = "/" + Path
 var Path = "org/opensuse/tukit/Updated"
+var FullPath = "/" + Path
 
 func main() {
 	if len(os.Args) < 2 || os.Args[1] == "-h" || os.Args[1] == "--help" {
@@ -38,7 +37,9 @@ func main() {
 			NotifyDaemonClient("failure")
 			return
 		}
+
 		NotifyDaemonClient("success")
+
 		return
 	}
 }
