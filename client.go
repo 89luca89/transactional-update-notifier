@@ -15,13 +15,13 @@ func NotifyDaemonClient(success string) {
 	defer conn.Close()
 
 	obj := conn.Object(
-		"org.test.tu",
-		"/org/test/tu",
+		Iface,
+		dbus.ObjectPath(FullPath),
 	)
 	call := obj.Call(
-		"org.test.tu.Notify",
+		Iface + ".Notify",
 		0,
-		"notify:" + success,
+		success,
 	)
 
 	if call.Err != nil {
