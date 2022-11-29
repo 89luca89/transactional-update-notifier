@@ -2,16 +2,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/godbus/dbus/v5"
-	"github.com/godbus/dbus/v5/introspect"
 )
 
-type notify string
-
-func (f notify) Notify(input string) (string, *dbus.Error) {
+func notify(input string) {
 
 	log.Printf("Update finished: %s", input)
 	// Customize message based on success state
@@ -54,69 +52,27 @@ func (f notify) Notify(input string) (string, *dbus.Error) {
 	if call.Err != nil {
 		panic(call.Err)
 	}
-
-	return string(f), nil
 }
 
-// NotifyDaemon is the user-facing running daemon that will be sending the graphical
-// notifications.
 func NotifyDaemon() {
 	conn, err := dbus.SystemBus()
-
-	// couldnt connect to session bus
 	if err != nil {
 		panic(err)
 	}
 
-	reply, err := conn.RequestName(Iface, dbus.NameFlagDoNotQueue)
-	if err != nil {
+	if err = conn.AddMatchSignal(
+		dbus.WithMatchObjectPath(dbus.ObjectPath(FullPath)),
+		dbus.WithMatchInterface(Iface),
+	); err != nil {
 		panic(err)
 	}
 
-	if reply != dbus.RequestNameReplyPrimaryOwner {
-		panic("Name already taken")
+	c := make(chan *dbus.Signal, 10)
+	conn.Signal(c)
+	for v := range c {
+		if v.Name == Iface+".Notify" {
+			body := fmt.Sprintf("%s", v.Body...)
+			notify(string(body))
+		}
 	}
-
-	m := notify("Ok!")
-
-	err = conn.Export(m, dbus.ObjectPath(FullPath), Iface)
-	if err != nil {
-		panic(err)
-	}
-
-	n := &introspect.Node{
-		Interfaces: []introspect.Interface{
-			{
-				Name:    Iface,
-				Methods: introspect.Methods(m),
-				Signals: []introspect.Signal{},
-			},
-		},
-	}
-
-	root := &introspect.Node{
-		Children: []introspect.Node{
-			{
-				Name: "org/test/tu",
-			},
-		},
-	}
-
-	err = conn.Export(introspect.NewIntrospectable(n),
-		dbus.ObjectPath(FullPath),
-		"org.freedesktop.DBus.Introspectable")
-	if err != nil {
-		panic(err)
-	}
-
-	err = conn.Export(introspect.NewIntrospectable(root),
-		"/",
-		"org.freedesktop.DBus.Introspectable")
-	if err != nil {
-		panic(err)
-	}
-
-	log.Printf("Bridge is Running.")
-
-	select {}
 }

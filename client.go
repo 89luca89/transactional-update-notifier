@@ -1,7 +1,9 @@
 // main package
 package main
 
-import "github.com/godbus/dbus/v5"
+import (
+	"github.com/godbus/dbus/v5"
+)
 
 // NotifyDaemonClient will search througt all files in /run/user, to find all
 // running transactionalupdatenotification socket files, then send a message
@@ -13,17 +15,8 @@ func NotifyDaemonClient(success string) {
 	}
 	defer conn.Close()
 
-	obj := conn.Object(
-		Iface,
-		dbus.ObjectPath(FullPath),
-	)
-	call := obj.Call(
-		Iface+".Notify",
-		0,
-		success,
-	)
-
-	if call.Err != nil {
-		panic(call.Err)
+	err = conn.Emit(dbus.ObjectPath(FullPath), Iface+".Notify", success)
+	if err != nil {
+		panic(err)
 	}
 }
