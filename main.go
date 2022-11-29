@@ -10,6 +10,7 @@ import (
 var Version string
 var Iface = "org.opensuse.tukit.Updated"
 var Path = "org/opensuse/tukit/Updated"
+var Member = "Notify"
 var FullPath = "/" + Path
 
 func main() {

@@ -15,7 +15,7 @@ func NotifyDaemonClient(success string) {
 	}
 	defer conn.Close()
 
-	err = conn.Emit(dbus.ObjectPath(FullPath), Iface+".Notify", success)
+	err = conn.Emit(dbus.ObjectPath(FullPath), Iface+"."+Member, success)
 	if err != nil {
 		panic(err)
 	}

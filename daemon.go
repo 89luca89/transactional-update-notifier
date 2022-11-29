@@ -63,7 +63,7 @@ func NotifyDaemon() {
 	if err = conn.AddMatchSignal(
 		dbus.WithMatchObjectPath(dbus.ObjectPath(FullPath)),
 		dbus.WithMatchInterface(Iface),
-		dbus.WithMatchMember("Notify"),
+		dbus.WithMatchMember(Member),
 	); err != nil {
 		panic(err)
 	}
