@@ -60,9 +60,10 @@ func NotifyDaemon() {
 	}
 
 	if err = conn.AddMatchSignal(
-		dbus.WithMatchObjectPath(dbus.ObjectPath(FullPath)),
 		dbus.WithMatchInterface(Iface),
 		dbus.WithMatchMember(Member),
+		dbus.WithMatchObjectPath(dbus.ObjectPath(FullPath)),
+		dbus.WithMatchSender(Iface),
 	); err != nil {
 		panic(err)
 	}

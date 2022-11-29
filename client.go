@@ -15,6 +15,16 @@ func NotifyDaemonClient(success string) {
 	}
 	defer conn.Close()
 
+	reply, err := conn.RequestName(Iface,
+		dbus.NameFlagDoNotQueue)
+	if err != nil {
+		panic(err)
+	}
+
+	if reply != dbus.RequestNameReplyPrimaryOwner {
+		panic("name already taken")
+	}
+
 	err = conn.Emit(dbus.ObjectPath(FullPath), Iface+"."+Member, success)
 	if err != nil {
 		panic(err)
