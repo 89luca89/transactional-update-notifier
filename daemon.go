@@ -63,6 +63,7 @@ func NotifyDaemon() {
 	if err = conn.AddMatchSignal(
 		dbus.WithMatchObjectPath(dbus.ObjectPath(FullPath)),
 		dbus.WithMatchInterface(Iface),
+		dbus.WithMatchMember("Notify"),
 	); err != nil {
 		panic(err)
 	}
@@ -70,9 +71,7 @@ func NotifyDaemon() {
 	c := make(chan *dbus.Signal, 10)
 	conn.Signal(c)
 	for v := range c {
-		if v.Name == Iface+".Notify" {
-			body := fmt.Sprintf("%s", v.Body...)
-			notify(string(body))
-		}
+		body := fmt.Sprintf("%s", v.Body...)
+		notify(string(body))
 	}
 }
