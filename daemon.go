@@ -35,6 +35,15 @@ func notify(input string) {
 		"org.freedesktop.Notifications",
 		"/org/freedesktop/Notifications",
 	)
+
+	// Set hints of the notification, in this case we set it to
+	// an urgent notification, so we're sure that it will stick
+	// in the tray, and the user is notified.
+	hints := map[string]dbus.Variant{
+		"urgency":  dbus.MakeVariant(byte(2)),
+		"category": dbus.MakeVariant("device"),
+	}
+
 	call := obj.Call(
 		"org.freedesktop.Notifications.Notify",
 		0,
@@ -44,8 +53,8 @@ func notify(input string) {
 		message,
 		submessage,
 		[]string{},
-		map[string]dbus.Variant{},
-		int32(5000),
+		hints,
+		int32(-1),
 	)
 
 	if call.Err != nil {
