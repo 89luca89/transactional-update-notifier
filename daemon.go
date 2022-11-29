@@ -72,6 +72,6 @@ func NotifyDaemon() {
 	conn.Signal(c)
 	for v := range c {
 		body := fmt.Sprintf("%s", v.Body...)
-		notify(string(body))
+		notify(body)
 	}
 }
