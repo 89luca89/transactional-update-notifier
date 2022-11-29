@@ -10,7 +10,6 @@ import (
 )
 
 func notify(input string) {
-
 	log.Printf("Update finished: %s", input)
 	// Customize message based on success state
 	message := "Updates successfully installed"
@@ -70,6 +69,7 @@ func NotifyDaemon() {
 
 	c := make(chan *dbus.Signal, 10)
 	conn.Signal(c)
+
 	for v := range c {
 		body := fmt.Sprintf("%s", v.Body...)
 		notify(body)
