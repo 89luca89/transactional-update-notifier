@@ -8,9 +8,10 @@ import (
 
 // Version is the current value injected at build time.
 var Version string
-
-// Message is the standard message that client and daemon should exchange to trigger a notify.
-var Message = "org.transactionalUpdate.Notify"
+var Iface = "org.opensuse.tukit.Updated"
+var Path = "org/opensuse/tukit/Updated"
+var Member = "Notify"
+var FullPath = "/" + Path
 
 func main() {
 	if len(os.Args) < 2 || os.Args[1] == "-h" || os.Args[1] == "--help" {
@@ -37,7 +38,9 @@ func main() {
 			NotifyDaemonClient("failure")
 			return
 		}
+
 		NotifyDaemonClient("success")
+
 		return
 	}
 }

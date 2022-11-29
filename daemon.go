@@ -2,34 +2,26 @@
 package main
 
 import (
-	"io"
+	"fmt"
 	"log"
-	"net"
-	"os"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/godbus/dbus/v5"
 )
 
-var sockAddr = "/run/user/" +
-	strconv.Itoa(os.Geteuid()) +
-	"/transactionalupdatenotification.socket"
-
-func notifySend(input string) {
-	success := strings.Split(input, ":")[1]
-
+func notify(input string) {
+	log.Printf("Update finished: %s", input)
 	// Customize message based on success state
 	message := "Updates successfully installed"
 	submessage := "System has been upgraded, on " +
-		string(time.Now().Format(time.RFC1123)) +
+		time.Now().Format(time.RFC1123) +
 		" please reboot to take effect."
 	icon := "appointment-soon"
-	if strings.Compare(success, "failure") == 0 {
+
+	if input == "failure" {
 		message = "Update process failed"
 		submessage = "An error was encountered while upgrading on " +
-			string(time.Now().Format(time.RFC1123))
+			time.Now().Format(time.RFC1123)
 		icon = "appointment-missed"
 	}
 
@@ -61,49 +53,26 @@ func notifySend(input string) {
 	}
 }
 
-func handleMessage(connection net.Conn) {
-	log.Printf("Client connected [%s]", connection.RemoteAddr().Network())
-
-	inputBuffer := make([]byte, 1024)
-	data, err := connection.Read(inputBuffer)
-
-	if err != nil {
-		panic("Receiving error")
-	}
-
-	if strings.Contains(string(inputBuffer[:data]), Message) {
-		notifySend(string(inputBuffer[:data]))
-	}
-
-	_, err = io.Copy(connection, connection)
-	if err != nil {
-		panic("Receiving error")
-	}
-
-	connection.Close()
-}
-
-// NotifyDaemon is the user-facing running daemon that will be sending the graphical
-// notifications.
 func NotifyDaemon() {
-	if err := os.RemoveAll(sockAddr); err != nil {
-		log.Fatal(err)
-	}
-
-	listener, err := net.Listen("unix", sockAddr)
+	conn, err := dbus.SystemBus()
 	if err != nil {
-		log.Fatal("listen error:", err)
+		panic(err)
 	}
-	defer listener.Close()
 
-	for {
-		// Accept new connections, dispatching them to echoServer
-		// in a goroutine.
-		conn, err := listener.Accept()
-		if err != nil {
-			log.Println("accept error:", err)
-		}
+	if err = conn.AddMatchSignal(
+		dbus.WithMatchSender(Iface),
+		dbus.WithMatchObjectPath(dbus.ObjectPath(FullPath)),
+		dbus.WithMatchInterface(Iface),
+		dbus.WithMatchMember(Member),
+	); err != nil {
+		panic(err)
+	}
 
-		go handleMessage(conn)
+	c := make(chan *dbus.Signal, 10)
+	conn.Signal(c)
+
+	for v := range c {
+		body := fmt.Sprintf("%s", v.Body...)
+		notify(body)
 	}
 }
