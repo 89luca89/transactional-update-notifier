@@ -5,9 +5,8 @@ import (
 	"github.com/godbus/dbus/v5"
 )
 
-// NotifyDaemonClient will search througt all files in /run/user, to find all
-// running transactionalupdatenotification socket files, then send a message
-// to each one of them in order to trigger the notification for all.
+// NotifyDaemonClient will emit a message on org.opensuse.tukit.Updated
+// so each one of the user-facing service will trigger the graphical notification.
 func NotifyDaemonClient(success string) {
 	conn, err := dbus.SystemBus()
 	if err != nil {

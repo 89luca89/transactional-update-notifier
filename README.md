@@ -19,14 +19,19 @@ sudo make install
 
 **Transactional Update Notifier** should be run as a user's Systemd unit. 
 
-``` bash
-transactional-update-notifier daemon
+This will wait for messages over dbus at `org.opensuse.tukit.Updated` and trigger the graphical
+notification when receiving the signal.
+
+Graphical notifications are performed using user's dbus session.
+
+``` console
+~$: transactional-update-notifier daemon
 ```
 
 Or using `systemctl`:
 
-``` bash
-systemctl --user enable --now transactional-update-notifier
+``` console
+~$: systemctl --user enable --now transactional-update-notifier
 ```
 
 **Note:** After installing **Transactional Update Notifier** using `make`, the
@@ -34,14 +39,19 @@ systemctl --user enable --now transactional-update-notifier
 service by default on next boot and all you needed to do is to start it with:
 
 ``` bash
-systemctl --user start transactional-update-notifier
+~$: systemctl --user start transactional-update-notifier
 ```
 
 ### Client
 
 **Transactional Update Notifier** can be run from anywhere and executed by anyone,
-it will find the notifier socket and notify the user.
+it will send messages over dbus on `org.opensuse.tukit.Updated` and all listening services
+will trigger a graphical notification.
 
-``` bash
-transactional-update-notifier client
+``` console
+~#: transactional-update-notifier client
 ```
+
+Be aware that the file `org.opensuse.tukit.Updated.conf` should be put into `/etc/dbus-1/system.d/` in
+order to protect the `org.opensuse.tukit.Updated` name and allow only `root` to emit signals on this
+interface.

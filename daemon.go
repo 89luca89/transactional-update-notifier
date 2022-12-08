@@ -62,6 +62,8 @@ func notify(input string) {
 	}
 }
 
+// NotifyDaemon will wait for a message on org.opensuse.tukit.Updated and trigger
+// a graphical notification accordingly.
 func NotifyDaemon() {
 	conn, err := dbus.SystemBus()
 	if err != nil {
