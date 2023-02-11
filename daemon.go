@@ -40,7 +40,7 @@ func notify(input string) {
 	// an urgent notification, so we're sure that it will stick
 	// in the tray, and the user is notified.
 	hints := map[string]dbus.Variant{
-		"urgency":  dbus.MakeVariant(byte(2)),
+		"urgency":  dbus.MakeVariant(byte(1)),
 		"category": dbus.MakeVariant("device"),
 	}
 
